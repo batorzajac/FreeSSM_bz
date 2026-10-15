@@ -4,3 +4,7 @@ object_script.FreeSSM*
 ui_*.h
 debug/*
 release/*
+dist/
+logs/
+aqtinstall.log
+.qmake.stash

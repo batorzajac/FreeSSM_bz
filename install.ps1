@@ -70,7 +70,7 @@ param(
 )
 
 Set-StrictMode -Off
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 # --- Konfiguracja logowania ---
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -181,11 +181,11 @@ function Find-Toolchain {
 
         if (-not $Result.QtBin) {
             $Pattern = if ($ReqArch -eq "32") { "*mingw*32*" } else { "*mingw*64*" }
-            $Candidates = Get-ChildItem -Path "C:\Qt" -Filter "qmake.exe" -Recurse -Depth 4 -ErrorAction SilentlyContinue |
+            $Candidates = @(Get-ChildItem -Path "C:\Qt" -Filter "qmake.exe" -Recurse -Depth 4 -ErrorAction SilentlyContinue |
                 Where-Object { $_.FullName -like "*$Pattern*" } |
-                Select-Object -ExpandProperty DirectoryName
+                Select-Object -ExpandProperty DirectoryName)
 
-            if ($Candidates) {
+            if ($Candidates.Count -gt 0) {
                 $Result.QtBin = $Candidates[0]
                 Write-Log "Wykryto Qt bin: $($Result.QtBin)" "DEBUG"
             }
@@ -193,11 +193,11 @@ function Find-Toolchain {
 
         if (-not $Result.MinGWBin) {
             $ToolPattern = if ($ReqArch -eq "32") { "*mingw*32*" } else { "*mingw*64*" }
-            $MinGWCandidates = Get-ChildItem -Path "C:\Qt\Tools", "C:\Qt" -Filter "mingw32-make.exe" -Recurse -Depth 4 -ErrorAction SilentlyContinue |
+            $MinGWCandidates = @(Get-ChildItem -Path "C:\Qt\Tools", "C:\Qt" -Filter "mingw32-make.exe" -Recurse -Depth 4 -ErrorAction SilentlyContinue |
                 Where-Object { $_.FullName -like "*$ToolPattern*" } |
-                Select-Object -ExpandProperty DirectoryName
+                Select-Object -ExpandProperty DirectoryName)
 
-            if ($MinGWCandidates) {
+            if ($MinGWCandidates.Count -gt 0) {
                 $Result.MinGWBin = $MinGWCandidates[0]
                 Write-Log "Wykryto MinGW bin: $($Result.MinGWBin)" "DEBUG"
             }
@@ -351,7 +351,7 @@ if ($Clean) {
     Push-Location $ScriptRoot
     try {
         if (Test-Path "Makefile") {
-            & $Toolchain.MakeExe clean 2>&1 | Out-Null
+            cmd.exe /c "$($Toolchain.MakeExe) clean >nul 2>&1"
             Remove-Item -Path "Makefile*", "release", "debug", "object_script.*" -Recurse -Force -ErrorAction SilentlyContinue
         }
     } finally {
