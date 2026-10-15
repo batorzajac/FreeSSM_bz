@@ -23,6 +23,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress
+
       - name: Install aqtinstall
         run: python -m pip install --upgrade aqtinstall
 
@@ -34,7 +37,7 @@ jobs:
       - name: Build & Install FreeSSM
         shell: powershell
         run: |
-          .\install.ps1 -Clean -NoShortcuts -InstallDir "C:\FreeSSM"
+          .\install.ps1 -Clean -NoShortcuts -InstallDir "C:\FreeSSM" -QtPath "C:\Qt\5.15.2\mingw81_32\bin" -MinGWPath "C:\Qt\Tools\mingw810_32\bin" -DebugMode
 
       - name: Package Portable ZIP
         shell: powershell
@@ -45,7 +48,9 @@ jobs:
       - name: Compile Inno Setup Installer
         shell: powershell
         run: |
-          iscc /DSourceDir="C:\FreeSSM" installer.iss
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { $iscc = "iscc" }
+          & $iscc /DSourceDir="C:\FreeSSM" installer.iss
 
       - name: Set Release Tag
         id: vars

@@ -159,23 +159,7 @@ function Find-Toolchain {
         if ($Resolved) { $Result.MinGWBin = $Resolved }
     }
 
-    # 2. Sprawdzenie w PATH
-    if (-not $Result.QtBin) {
-        $InPathQMake = Get-Command "qmake.exe" -ErrorAction SilentlyContinue
-        if ($InPathQMake) {
-            $Result.QtBin = Split-Path -Parent $InPathQMake.Source
-            Write-Log "Znaleziono qmake w PATH: $($Result.QtBin)" "DEBUG"
-        }
-    }
-    if (-not $Result.MinGWBin) {
-        $InPathGpp = Get-Command "g++.exe" -ErrorAction SilentlyContinue
-        if ($InPathGpp) {
-            $Result.MinGWBin = Split-Path -Parent $InPathGpp.Source
-            Write-Log "Znaleziono g++ w PATH: $($Result.MinGWBin)" "DEBUG"
-        }
-    }
-
-    # 3. Przeszukiwanie standardowych katalogow C:\Qt
+    # 2. Przeszukiwanie standardowych katalogow C:\Qt (najwyzszy priorytet dla dopasowania architektury)
     if (Test-Path "C:\Qt") {
         Write-Log "Skanowanie katalogu C:\Qt..." "DEBUG"
 
@@ -201,6 +185,22 @@ function Find-Toolchain {
                 $Result.MinGWBin = $MinGWCandidates[0]
                 Write-Log "Wykryto MinGW bin: $($Result.MinGWBin)" "DEBUG"
             }
+        }
+    }
+
+    # 3. Sprawdzenie w PATH (jesli nie znaleziono w C:\Qt)
+    if (-not $Result.QtBin) {
+        $InPathQMake = Get-Command "qmake.exe" -ErrorAction SilentlyContinue
+        if ($InPathQMake) {
+            $Result.QtBin = Split-Path -Parent $InPathQMake.Source
+            Write-Log "Znaleziono qmake w PATH: $($Result.QtBin)" "DEBUG"
+        }
+    }
+    if (-not $Result.MinGWBin) {
+        $InPathGpp = Get-Command "g++.exe" -ErrorAction SilentlyContinue
+        if ($InPathGpp) {
+            $Result.MinGWBin = Split-Path -Parent $InPathGpp.Source
+            Write-Log "Znaleziono g++ w PATH: $($Result.MinGWBin)" "DEBUG"
         }
     }
 
